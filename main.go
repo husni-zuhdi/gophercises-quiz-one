@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -31,10 +32,20 @@ func main() {
 	// Parse lines in csv file
 	problems := parseLines(lines)
 
+	correct := 0
 	// Iterate the problem
 	for i, prob := range problems {
 		fmt.Printf("Problem #%d: %s = \n", i+1, prob.q)
+		var answer string
+		fmt.Scanf("%s\n", &answer)
+		// Check if answer is correct
+		if answer == prob.a {
+			correct++
+		}
 	}
+
+	// Print score
+	fmt.Printf("Your score is %d out of %d.\n", correct, len(problems))
 }
 
 // exit to print exit message when something gone wrong.
@@ -56,7 +67,7 @@ func parseLines(lines [][]string) []problem {
 		// Insert problem type struct into ret[i]
 		ret[i] = problem{
 			q: line[0],
-			a: line[1],
+			a: strings.TrimSpace(line[1]), // Trim space in case the answer have too much space
 		}
 	}
 	return ret
