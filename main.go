@@ -6,14 +6,21 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
-	// Set flag to parse csv file.
+	// Set csvFileName flag to parse csv file.
 	csvFileName := flag.String(
 		"csv",
 		"problems.csv",
 		"a csv file in the format of 'question, answer'",
+	)
+	// Set timer flag
+	timeLimit := flag.Int(
+		"limit",
+		30,
+		"the time limit for the quiz in seconds",
 	)
 	// Parse list of commands.
 	flag.Parse()
@@ -29,23 +36,41 @@ func main() {
 		exit("Failed to load the csv file")
 	}
 
-	// Parse lines in csv file
+	// Parse lines in csv file.
 	problems := parseLines(lines)
 
+	// Set the timer.
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
+	<-timer.C
+
 	correct := 0
-	// Iterate the problem
+	// Iterate the problem.
+problemloop:
 	for i, prob := range problems {
-		fmt.Printf("Problem #%d: %s = \n", i+1, prob.q)
-		var answer string
-		fmt.Scanf("%s\n", &answer)
-		// Check if answer is correct
-		if answer == prob.a {
-			correct++
+		fmt.Printf("Problem #%d: %s = ", i+1, prob.q)
+		// Make answer channel
+		answerCh := make(chan string)
+		// Build goroutine with anonymous function and run it.
+		go func() {
+			var answer string
+			fmt.Scanf("%s\n", &answer)
+			answerCh <- answer
+		}()
+
+		select {
+		// Waiting for timer to end. If it end, print the score.
+		case <-timer.C:
+			// Print score
+			fmt.Printf("Your score is %d out of %d.\n", correct, len(problems))
+			break problemloop
+		// Waiting for user to answer the question. Then check the answer
+		case answer := <-answerCh:
+			if answer == prob.a {
+				correct++
+			}
 		}
 	}
 
-	// Print score
-	fmt.Printf("Your score is %d out of %d.\n", correct, len(problems))
 }
 
 // exit to print exit message when something gone wrong.
