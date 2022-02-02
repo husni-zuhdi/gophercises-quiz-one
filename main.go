@@ -41,7 +41,6 @@ func main() {
 
 	// Set the timer.
 	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
-	<-timer.C
 
 	correct := 0
 	// Iterate the problem.
@@ -58,10 +57,9 @@ problemloop:
 		}()
 
 		select {
-		// Waiting for timer to end. If it end, print the score.
+		// Waiting for timer to end.
 		case <-timer.C:
-			// Print score
-			fmt.Printf("Your score is %d out of %d.\n", correct, len(problems))
+			fmt.Println()
 			break problemloop
 		// Waiting for user to answer the question. Then check the answer
 		case answer := <-answerCh:
@@ -70,7 +68,8 @@ problemloop:
 			}
 		}
 	}
-
+	// Print score
+	fmt.Printf("Your score is %d out of %d.\n", correct, len(problems))
 }
 
 // exit to print exit message when something gone wrong.
